@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distorted Voice Playback</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Include D3.js -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Do You Remember Your Voice?</h1>
+    <div class="buttons">
+      <button id="recordButton">Record</button>
+      <button id="stopButton" disabled>Stop Recording</button>
+      <button id="distortButton" disabled>Listen</button>
+      <button id="stopPlaybackButton" disabled>Stop</button>
+    </div>
+    <p id="statusText">Ready to record</p>
+    <div id="visualContainer">
+      <!-- SVG container for D3 visuals -->
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

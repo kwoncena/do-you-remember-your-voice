@@ -1,0 +1,58 @@
+body {
+    background-color: #28282B;
+    color: white;
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    text-align: center;
+  }
+  
+  .container {
+    background: #333;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #FF6347; /* Tomato color for the title */
+  }
+  
+  .buttons {
+    margin-bottom: 20px;
+  }
+  
+  button {
+    background-color: #444;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  
+  button:hover {
+    background-color: #555;
+  }
+  
+  button:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+  }
+  
+  #statusText {
+    margin-top: 15px;
+    font-size: 18px;
+  }
+  
+  #visualContainer {
+    margin-top: 20px;
+  }
+  
