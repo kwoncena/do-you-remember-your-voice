@@ -1,10 +1,11 @@
 let mediaRecorder;
 let recordedChunks = [];
 let audioBlob;
-let audioElement;
+let audioElements = []; // Array to store multiple audio elements
 let isRecording = false;
-let playbackIntervals = [];
+let stream = null; // To store the microphone stream
 let distortLayerCount = 0;
+const maxDistortions = 5; // Number of distorted layers to play
 
 // Set up D3 SVG container
 const visualContainer = d3.select("#visualContainer")
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Button event listeners
   recordButton.addEventListener("click", () => toggleRecording());
-  stopButton.addEventListener("click", () => stopRecording());
+  stopButton.addEventListener("click", () => stopAll());
   distortButton.addEventListener("click", () => playDistortedPlayback());
   stopPlaybackButton.addEventListener("click", () => stopDistortedPlayback());
 
@@ -33,7 +34,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!isRecording) {
       // Start recording
       navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
+        .then(userStream => {
+          stream = userStream; // Store the microphone stream
           mediaRecorder = new MediaRecorder(stream);
           mediaRecorder.start();
 
@@ -43,7 +45,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
           mediaRecorder.onstop = function () {
             audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-            audioElement = new Audio(URL.createObjectURL(audioBlob));
+            
+            // Prepare 5 separate audio elements for distortion playback
+            audioElements = [];
+            for (let i = 0; i < maxDistortions; i++) {
+              const audioElement = new Audio(URL.createObjectURL(audioBlob));
+              audioElements.push(audioElement);
+            }
           };
 
           statusText.textContent = "Recording in progress... Speak!";
@@ -62,22 +70,31 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  function stopRecording() {
+  function stopAll() {
+    // Stop recording if in progress
     if (isRecording) {
-      // Stop recording
       mediaRecorder.stop();
       isRecording = false;
       statusText.textContent = "Recording stopped. Ready for playback.";
       stopButton.disabled = true;
       distortButton.disabled = false;
+      
+      // Stop microphone access
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
 
       // Draw initial sound wave visual (simple line)
       drawSoundWave();
     }
+
+    // Stop all audio playback
+    stopDistortedPlayback();
   }
 
   function playDistortedPlayback() {
-    if (audioElement && !isPlayingDistorted) {
+    if (audioElements.length > 0 && !isPlayingDistorted) {
       statusText.textContent = "Playing distorted audio...";
       isPlayingDistorted = true;
       distortButton.disabled = true;
@@ -87,18 +104,20 @@ document.addEventListener("DOMContentLoaded", function () {
       visualContainer.selectAll("*").remove();
       staticInterval = setInterval(generateRandomStatic, 500);
 
-      // Play distorted audio layers
-      playDistortedLayer();
+      // Play all 5 distorted variations at once
+      audioElements.forEach((audio, index) => {
+        const randomSpeed = Math.random() * 1.5 + 0.5; // Random speed between 0.5x and 2.0x
+        audio.playbackRate = randomSpeed;
+        audio.play();
 
-      // Every 10 seconds, add a new layer
-      playbackIntervals.push(setInterval(playDistortedLayer, 10000));
+        // Generate a new distorted sound wave visual for each layer
+        drawSoundWave(true);
+      });
     }
   }
 
   function stopDistortedPlayback() {
     // Clear intervals, visuals, and stop playback
-    playbackIntervals.forEach(clearInterval);
-    playbackIntervals = [];
     clearInterval(staticInterval);
 
     visualContainer.selectAll("*").remove();
@@ -107,24 +126,11 @@ document.addEventListener("DOMContentLoaded", function () {
     distortButton.disabled = false;
     stopPlaybackButton.disabled = true;
 
-    // Stop the audio if it's playing
-    if (audioElement) {
-      audioElement.pause();
-      audioElement.currentTime = 0;
-    }
-  }
-
-  function playDistortedLayer() {
-    if (audioElement) {
-      distortLayerCount++;
-
-      // Adjust playback speed randomly to create distortion
-      audioElement.playbackRate = Math.random() * 1.5 + 0.5;
-      audioElement.play();
-
-      // Generate random wave distortion for each layer
-      drawSoundWave(true);
-    }
+    // Stop all audio elements if they're playing
+    audioElements.forEach(audio => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
   }
 
   // Function to draw the sound wave, optionally distorted
